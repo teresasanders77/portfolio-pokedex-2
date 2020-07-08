@@ -6,7 +6,7 @@ var pokemonRepository = (function () {
   var $modalContainer = $('#modal-container');
   var $modal = $('.modal');
 
-//adds pokemon to pokemonList as long as it's an object
+//adds pokemon to pokemonList
 function add(pokemon) {
   pokemonList.push(pokemon);
 }
@@ -16,19 +16,20 @@ function getAll() {
   return pokemonList;
 }
 
+//function to create a list 
 function addListItem(pokemon) {
   var $listItem = $('<li></li>');
-//adds button for each list item
     $pokemonList.append($listItem);
-
+//adds button for each list item
     var $button = $('<button class="list-button">' + pokemon.name + '</button>');
     $listItem.append($button);
-
+//logs details of each pokemon when clicked 
     $button.click(function() {
       showDetails(pokemon);
   });
 }
 
+//function to load list from api
 function loadList() {
     return $.ajax(apiUrl, {
       dataType: 'json',
@@ -41,11 +42,13 @@ function loadList() {
           add(pokemon);
         });
       }
+//if promise is rejected, the following is run 
     }).fail(function(e) {
       console.error(e);
     });
   }
 
+//function to load details
 function loadDetails(item) {
   var url = item.detailsUrl;
   return $.ajax(url, {
@@ -58,10 +61,12 @@ function loadDetails(item) {
       item.imageUrl = details.sprites.front_default;
       item.height = details.height;
       item.weight = details.weight;
+//loop for each type of pokemon
       item.types = [];
         for (var i = 0; i < details.types.length; i++) {
            item.types.push(details.types[i].type.name);
     }
+//loop for the abilities of each pokemon
       item.abilities = [];
         for (var i = 0; i < details.abilities.length; i++) {
           item.abilities.push(details.abilities[i].ability.name);
@@ -111,6 +116,7 @@ function showModal(pokemon) {
     hideModal();
   });
 
+//append modal content to page
   $modal.append($closeButtonElement);
   $modal.append(nameElement);
   $modal.append(heightElement);
@@ -119,6 +125,7 @@ function showModal(pokemon) {
   $modal.append(abilitiesElement);
   $modal.append(imageElement);
 
+//add class to show modal
   $modalContainer.addClass('is-visible');
 }
 
@@ -126,12 +133,15 @@ function hideModal() {
   $modalContainer.removeClass('is-visible');
 }
 
+
+//adds event listener when ESC is clicked 
 $(window).keydown(function(e) {
   if (e.key === 'Escape' && $modalContainer.hasClass('is-visible')) {
       hideModal();
     }
   });
 
+//adds event listener if clicking outside of the modal
 $($modalContainer).click(function(e) {
   var target = e.target;
   if (target != $modal) {
@@ -139,6 +149,7 @@ $($modalContainer).click(function(e) {
   }
  });
 
+//returns values that can be accessed to outside the IIFE
 return {
   add: add,
   getAll: getAll,
@@ -151,6 +162,7 @@ return {
 
 })();
 
+//forEach function to list pokemon by name on buttons
 pokemonRepository.loadList().then(function() {
   pokemonRepository.getAll().forEach(function(pokemon) {
     pokemonRepository.addListItem(pokemon);
