@@ -8,7 +8,7 @@ var pokemonRepository = (function () {
 
 //adds pokemon to pokemonList as long as it's an object
 function add(pokemon) {
-    pokemonList.push(pokemon);
+  pokemonList.push(pokemon);
 }
 
 //function to pull all data
