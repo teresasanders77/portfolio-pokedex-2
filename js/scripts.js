@@ -139,7 +139,6 @@ $($modalContainer).click(function(e) {
   }
  });
 
-
 return {
   add: add,
   getAll: getAll,
