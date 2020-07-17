@@ -2,9 +2,6 @@
 var pokemonRepository = (function () {
   var pokemonList = [];
   var apiUrl = 'https://pokeapi.co/api/v2/pokemon/?limit=150';
-  var $pokemonList = $('.pokemon-list');
-  var $modalContainer = $('#modal-container');
-  var $modal = $('.modal');
 
 //adds pokemon to pokemonList
 function add(pokemon) {
@@ -16,34 +13,42 @@ function getAll() {
   return pokemonList;
 }
 
-//function to create a list 
+//function to create a list
 function addListItem(pokemon) {
+  var pokemonList = $('.pokemon-list');
   var $listItem = $('<li></li>');
-    $pokemonList.append($listItem);
 //adds button for each list item
-    var $button = $('<button class="list-button">' + pokemon.name + '</button>');
+    var $button = $('<button type="button" class="btn btn-light btn-lg btn-block" data-target="#exampleModal" data-toggle="modal">' + pokemon.name + "</button>");
+    pokemonList.append($listItem);
     $listItem.append($button);
-//logs details of each pokemon when clicked 
-    $button.click(function() {
+//logs details of each pokemon when clicked
+    $button.on('click', function(event) {
       showDetails(pokemon);
   });
 }
 
+function showDetails(pokemon) {
+  pokemonRepository
+    .loadDetails(pokemon).then(function() {
+      console.log(pokemon);
+      showModal(pokemon);
+    });
+}
+
 //function to load list from api
 function loadList() {
-    return $.ajax(apiUrl, {
-      dataType: 'json',
-      success: function(responseJSON) {
-        responseJSON.results.forEach(function(item) {
-          var pokemon = {
-            name: item.name,
-            detailsUrl: item.url
-          };
+  return $.ajax(apiUrl)
+    .then(function (json) {
+      json.results.forEach(function(item) {
+        var pokemon = {
+          name: item.name,
+          detailsUrl: item.url
+        };
           add(pokemon);
         });
-      }
+      })
 //if promise is rejected, the following is run 
-    }).fail(function(e) {
+    .catch(function(e) {
       console.error(e);
     });
   }
@@ -51,13 +56,8 @@ function loadList() {
 //function to load details
 function loadDetails(item) {
   var url = item.detailsUrl;
-  return $.ajax(url, {
-    dataType: 'json'
-  })
-    .then(function(responseJSON) {
-      return responseJSON;
-    })
-    .then(function(details) {
+  return $.ajax(url)
+    .then(function (details) {
       item.imageUrl = details.sprites.front_default;
       item.height = details.height;
       item.weight = details.weight;
@@ -75,79 +75,33 @@ function loadDetails(item) {
     .catch(function(e) {
       console.error(e);
   });
-} 
-
-function showDetails(pokemon) {
-  pokemonRepository
-    .loadDetails(pokemon)
-    .then(function() {
-      return pokemon;
-    })
-    .then(function(pokemon) {
-      showModal(pokemon);
-    })
-    .catch(function(e) {
-      console.error(e);
-    });
 }
 
 function showModal(pokemon) {
-  $modalContainer.html('');
+  var modalBody = $('.modal-body');
+  var modalTitle = $('.modal-title');
+  modalBody.empty();
+  modalTitle.empty();
 
-  var $modal = $('<div class="modal"></div>');
-  $modalContainer.append($modal);
+  var nameElement = $('<h1>' + pokemon.name + '</h1>')
+    modalTitle.append(nameElement);
 
-  var nameElement = $('<h1 class="pokemon-name">' + pokemon.name + '</h1>');
-  $('.modal').append(nameElement);
+  var heightElement = $('<p>' + 'Height: ' + pokemon.height + '</p>');
+    modalBody.append(heightElement);
 
-  var heightElement = $('<p>height : ' + pokemon.height + 'm</p>');
+  var weightElement = $('<p>' + 'Weight : ' + pokemon.weight + '</p>');
+    modalBody.append(weightElement);
 
-  var weightElement = $('<p>weight : ' + pokemon.weight + 'kg</p>');
+  var typesElement = $('<p>' + 'Types: ' + pokemon.types + '</p>');
+    modalBody.append(typesElement);
 
-  var typesElement = $('<p>types: ' + pokemon.types + '</p>');
+  var abilitiesElement = $('<p>' + 'Abilities: ' + pokemon.abilities + '</p>');
+    modalBody.append(abilitiesElement);
 
-  var abilitiesElement = $('<p>abilitites : ' + pokemon.abilities + '</p>');
-
-  var imageElement = $('<img class="modal-img"/>');
+  var imageElement = $('<img class="modal-img">');
   imageElement.attr('src', pokemon.imageUrl);
-
-  var $closeButtonElement = $('<button class="modal-close">Close</button>');
-  $($closeButtonElement).click(function() {
-    hideModal();
-  });
-
-//append modal content to page
-  $modal.append($closeButtonElement);
-  $modal.append(nameElement);
-  $modal.append(heightElement);
-  $modal.append(weightElement);
-  $modal.append(typesElement);
-  $modal.append(abilitiesElement);
-  $modal.append(imageElement);
-
-//add class to show modal
-  $modalContainer.addClass('is-visible');
+    modalBody.append(imageElement);
 }
-
-function hideModal() {
-  $modalContainer.removeClass('is-visible');
-}
-
-
-//adds event listener when ESC is clicked 
-$(window).keydown(function(e) {
-  if (e.key === 'Escape' && $modalContainer.hasClass('is-visible')) {
-      hideModal();
-    }
-  });
-
-//adds event listener if clicking outside of the modal
-$($modalContainer).click(function(e) {
-  var target = e.target;
-  if (target != $modal) {
-    hideModal();
-  }
- });
 
 //returns values that can be accessed to outside the IIFE
 return {
@@ -155,10 +109,10 @@ return {
   getAll: getAll,
   addListItem: addListItem,
   showModal: showModal,
-  hideModal: hideModal,
   loadList: loadList,
+  showDetails: showDetails,
   loadDetails: loadDetails
-  };  
+  };
 
 })();
 
